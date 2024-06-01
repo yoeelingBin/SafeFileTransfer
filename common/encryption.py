@@ -1,7 +1,7 @@
 from Crypto.Cipher import AES
 import os
 
-AES_KEY = b'your_32_byte_aes_key_here'
+AES_KEY = b'your_32_byte_aes_key_here__12345'
 
 def encrypt_file(file_path):
     with open(file_path, 'rb') as f:

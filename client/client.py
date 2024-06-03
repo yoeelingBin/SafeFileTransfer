@@ -14,10 +14,12 @@ def upload_file(file_path):
     filename_bytes = filename.encode()
     
     context = ssl.create_default_context()
-    context.load_verify_locations("certs/server.crt")
+    context.load_verify_locations("certs/server.crt") # 信任自签名证书
     with socket.create_connection((SERVER_ADDRESS, SERVER_PORT)) as sock:
         with context.wrap_socket(sock, server_hostname=SERVER_ADDRESS) as ssock:
             header = b'UPLOAD' + f'{len(filename_bytes):016d}'.encode()
+            ssock.sendall(header)
+            ssock.sendall(filename_bytes)
             data = nonce + ciphertext + tag + file_hash.encode()
             ssock.sendall(f'{len(data):016d}'.encode())  # 发送数据长度
             ssock.sendall(data)

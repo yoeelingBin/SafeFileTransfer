@@ -4,7 +4,7 @@ import string
 import random
 
 # 使用AES的CBC模式进行加密
-class AEScryptor:
+class AESCryptor:
     def __init__(self, key: bytes, iv: bytes=None, charset: str="utf-8") -> None:
         '''
         构建一个AES对象
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     iv =  b"0000100000010000"
     enc_file_path = '1.txt' #需要加密的文件
     dec_file_path = '1d.txt'
-    aes = AEScryptor(key, iv)
+    aes = AESCryptor(key, iv)
 
     en_text = aes.encrypt_from_file(enc_file_path) #加密明文
     print("密文：",en_text) #加密明文，bytes类型

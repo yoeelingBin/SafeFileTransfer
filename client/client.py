@@ -1,11 +1,15 @@
 import socket
 import ssl
 import os
-from common.encryption import encrypt_file, decrypt_file
+from common.AESencryption import encrypt_file, decrypt_file
 from common.utils import sha256_hash
 
 SERVER_ADDRESS = '127.0.0.1'
 SERVER_PORT = 12345
+
+
+def concat_data(data):
+    pass
 
 def upload_file(file_path):
     nonce, ciphertext, tag = encrypt_file(file_path)

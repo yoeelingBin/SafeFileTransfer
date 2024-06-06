@@ -51,6 +51,47 @@ g1U5DpBKWxwGNHgxnctv9Y9oGJHOJG7HQLPbThIkLoA2Z+JfDNGH
 -----END RSA PRIVATE KEY-----
 '''
 
+class client:
+    def __init__(self) -> None:
+        context = ssl.create_default_context()
+        # 信任自签名证书
+        context.load_verify_locations("certs/server.crt") 
+        # 连接服务端
+        self.sock = socket.create_connection((SERVER_ADDRESS, SERVER_PORT))
+        # 将socket打包成SSL socket
+        self.ssock = context.wrap_socket(self.sock, server_hostname=SERVER_ADDRESS)
+    
+    def upload_file(self, filepath: str):
+        if os.path.isfile(filepath):
+            # 定义打包规则
+            fileinfo_size = struct.calcsize('128sl')
+            # 定义文件头信息，包含文件名和文件大小
+            header = {
+                'command': 'UPLOAD',
+                'fileName': os.path.basename(filepath),
+                'fileSize': os.stat(filepath).st_size,
+                'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+            }
+            header_bytes = bytes(json.dumps(header).encode("utf-8"))
+            fhead = struct.pack('128s', header_bytes)
+            # 发送文件名称与文件大小
+            print(fhead)
+            self.ssock.send(fhead)
+            # 将传输文件以二进制的形式分多次上传至服务器
+            fp = open(filepath, 'rb')
+            while True:
+                data = fp.read(1024)
+                if not data:
+                    print('{0} 文件发送完毕...'.format(os.path.basename(filepath)))
+                    break
+                print("发送的内容",data)
+                tosend = concat_file(data)
+                self.ssock.send(str(len(tosend)).encode('utf-8'))
+                self.ssock.send(tosend)
+
+            # fp.close()
+            self.ssock.close()
+
 
 def concat_file(data) -> bytes:
     # RSA初始化
@@ -77,22 +118,6 @@ def concat_file(data) -> bytes:
     print("发送的消息:", send_message)
     return send_message
 
-def upload_file(filepath: str):
-    if os.path.isfile(filepath):
-        # 定义打包规则
-        fileinfo_size = struct.calcsize('128sl')
-        # 定义文件头信息，包含文件名和文件大小
-        header = {
-            'Command': 'UPLOAD',
-            'fileName': os.path.basename(filepath),
-            'fileSize': os.stat(filepath).st_size,
-            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-        }
-        header_bytes = bytes(json.dumps(header).encode("utf-8"))
-        fhead = struct.pack('128s', header_bytes)
-        # 发送文件名称与文件大小
-        print(fhead)
-    # TODO sock连接发送文件
 
 
 # def upload_file(file_path):
@@ -152,4 +177,5 @@ def download_file(file_name, save_path):
 if __name__ == "__main__":
     mes = b"kskskkqqqhfhfh1234"
     file_path = "1.txt"
-    upload_file(file_path)
+    client = client()
+    client.upload_file(file_path)

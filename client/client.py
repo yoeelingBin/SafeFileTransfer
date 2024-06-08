@@ -82,10 +82,11 @@ class client:
             while True:
                 data = fp.read(1024)
                 if not data:
-                    print('{0} 文件发送完毕...'.format(os.path.basename(filepath)))
+                    print('{}文件发送完毕...'.format(os.path.basename(filepath)))
                     break
-                print("发送的内容",data)
-                tosend = concat_file(data)
+                print("发送的内容:", data)
+                tosend = encrypt_file(data)
+                print("加密后的消息:", tosend)
                 self.ssock.send(str(len(tosend)).encode('utf-8'))
                 self.ssock.send(tosend)
 
@@ -93,7 +94,7 @@ class client:
             self.ssock.close()
 
 
-def concat_file(data) -> bytes:
+def encrypt_file(data) -> bytes:
     # RSA初始化
     rsa_cipher = RSACryptor()
     # AES初始化
@@ -110,10 +111,14 @@ def concat_file(data) -> bytes:
     cipher_message = aes_cipher.encrypt_message(dumpped_message)
     # 密钥和初始向量
     keyiv = {"Key": aes_key, "IV": aes_iv}
+    print("密钥和初始向量", keyiv)
     dumpped_keyiv = pickle.dumps(keyiv)
+    print("序列化后的密钥和初始向量", dumpped_keyiv)
     # 非对称加密密钥
     cipher_keyiv = rsa_cipher.encrypt_message(dumpped_keyiv, SERVER_PUBLIC_KEY)
+    print("加密后的密钥和初始向量", cipher_keyiv)
     # 发送消息
+    print("序列化前的发送消息", [cipher_message, cipher_keyiv])
     send_message = pickle.dumps([cipher_message, cipher_keyiv])
     print("发送的消息:", send_message)
     return send_message
@@ -177,5 +182,9 @@ def download_file(file_name, save_path):
 if __name__ == "__main__":
     mes = b"kskskkqqqhfhfh1234"
     file_path = "1.txt"
-    client = client()
-    client.upload_file(file_path)
+    # client = client()
+    # client.upload_file(file_path)
+    fp = open(file_path, 'rb')
+    data = fp.read(1024)
+    encrypt_file(data)
+    fp.close()

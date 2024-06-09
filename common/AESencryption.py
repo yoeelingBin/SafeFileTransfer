@@ -96,7 +96,7 @@ class AESCryptor:
         aes = AES.new(self.key, AES.MODE_CBC, self.iv)
         de_data = aes.decrypt(self.data)
         de_data = self.__pkcs7_unpadding(de_data)
-        decrypted_text = base64.b64decode(de_data).decode("utf-8")
+        decrypted_text = base64.b64decode(de_data)
         return decrypted_text
 
 def genKey() -> bytes:
@@ -124,8 +124,10 @@ if __name__ == "__main__":
     iv =  AESCryptor.gen_iv()
     aes = AESCryptor(key, iv)
     data = "哈哈哈哈"
+    bdata = b"0xdeadbeaf"
 
-    en_text = aes.encrypt_message(data) #加密明文
+    print("原始：", bdata)
+    en_text = aes.encrypt_message(bdata) #加密明文
     print("密文：", en_text) #加密明文，bytes类型
     de_text = aes.decrypt_message(en_text) # 解密密文
     print("明文：", de_text)

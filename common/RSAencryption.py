@@ -54,7 +54,7 @@ class RSACryptor:
         encrypted_message = base64.b64encode(cipher_rsa.encrypt(message))
         return encrypted_message
     
-    def decrypt_message(self, encrypted_message: bytes | str, private_key) -> str:
+    def decrypt_message(self, encrypted_message: bytes | str, private_key) -> bytes:
         '''
         解密消息
         encrypted_message: 加密后的消息
@@ -63,7 +63,7 @@ class RSACryptor:
         self.rsa_key = RSA.import_key(private_key)
         cipher_rsa = PKCS1_OAEP.new(self.rsa_key)
         decrypted_message = cipher_rsa.decrypt(base64.b64decode(encrypted_message))
-        return decrypted_message.decode()
+        return decrypted_message
     
     def sign_message(self, message: bytes | str, private_key) -> bytes:
         '''
@@ -76,8 +76,12 @@ class RSACryptor:
         if isinstance(message,str):
             message = message.encode()
         
-        h = SHA256.new(message)
-        signature = pkcs1_15.new(self.rsa_key).sign(h)
+        # h = SHA256.new(message)
+        # signature = pkcs1_15.new(self.rsa_key).sign(h)
+        digest = SHA256.new()
+        digest.update(message)
+        signer = pkcs1_15.new(self.rsa_key)
+        signature = signer.sign(digest)
         signature = base64.b64encode(signature)
         return signature
     
@@ -90,12 +94,15 @@ class RSACryptor:
         '''
         self.rsa_key = RSA.import_key(public_key)
 
-        if isinstance(message,str):
+        if isinstance(message, str):
             message = message.encode()
         
-        h = SHA256.new(message)
+        verifier = pkcs1_15.new(self.rsa_key)
+        digest = SHA256.new()
+        digest.update(message)
+
         try:
-            pkcs1_15.new(self.rsa_key).verify(h, base64.b64decode(signature))
+            verifier.verify(digest, base64.b64decode(signature))
             return True
         except (ValueError, TypeError):
             return False
@@ -106,7 +113,8 @@ if __name__ == "__main__":
     rsa_encryption.save_keys("keys/client/client")
 
     message = "这是一个需要加密的消息。"
-    print("原始消息:", message)
+    bmessage = b"0xdeadbeaf"
+    print("原始消息:", bmessage)
 
     pubkey = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1FqviXNLDxLrUPPjwqbW
@@ -149,7 +157,7 @@ s6XcJwnfPYYUYlhWXbrWPqXKvzYKVL7nt0NveACwX+fCKiHeBYbhcA==
 '''
     
     # 加密消息
-    encrypted_message = rsa_encryption.encrypt_message(message, public_key=pubkey)
+    encrypted_message = rsa_encryption.encrypt_message(bmessage, public_key=pubkey)
     print("加密后的消息:", encrypted_message)
     
     # 解密消息
@@ -157,9 +165,9 @@ s6XcJwnfPYYUYlhWXbrWPqXKvzYKVL7nt0NveACwX+fCKiHeBYbhcA==
     print("解密后的消息:", decrypted_message)
 
     # 签名消息
-    signature = rsa_encryption.sign_message(message, private_key=prikey)
+    signature = rsa_encryption.sign_message(bmessage, private_key=prikey)
     print("签名:", signature)
     
     # 验证签名
-    is_valid = rsa_encryption.verify_signature(message, signature, public_key=pubkey)
+    is_valid = rsa_encryption.verify_signature(bmessage, signature, public_key=pubkey)
     print("签名验证结果:", is_valid)

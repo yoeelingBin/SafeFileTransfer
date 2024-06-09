@@ -210,11 +210,11 @@ def decrypt_file(data):
 
 if __name__ == "__main__":
     mes = b"kskskkqqqhfhfh1234"
-    file_path = "1.txt"
-    file2_path = "2.md"
-    file3_path = "3.jpg"
+    file_path = "test_files/1.txt"
+    file2_path = "test_files/2.md"
+    file3_path = "test_files/3.jpg"
     client = client()
-    client.upload_file(file3_path)
+    client.upload_file(file_path)
     # fp = open(file_path, 'rb')
     # data = fp.read(1024)
     # enc_data = encrypt_file(data)

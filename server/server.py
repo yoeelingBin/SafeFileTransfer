@@ -114,15 +114,15 @@ class server:
         while not recvd_size == file_size:
             if file_size - recvd_size > 1024:
                 # 由于经过加密，实际发送的文件长度和原本不一致
-                len = int(conn.recv(1024).decode("utf-8"))
-                print("该段发送长度: ", len)
-                rdata = conn.recv(len)
+                recv_len = int(conn.recv(1024).decode("utf-8"))
+                print("该段发送长度: ", recv_len)
+                rdata = conn.recv(recv_len)
                 decrypted_data = decrypt_file(rdata)
                 recvd_size += len(decrypted_data)
             else:
-                len = int(conn.recv(1024).decode("utf-8"))
-                print("该段发送长度: ", len)
-                rdata = conn.recv(len)
+                recv_len = int(conn.recv(1024).decode("utf-8"))
+                print("该段发送长度: ", recv_len)
+                rdata = conn.recv(recv_len)
                 # print(rdata)
                 decrypted_data = decrypt_file(rdata)
                 recvd_size = file_size

@@ -7,7 +7,6 @@ import struct
 import time
 import json
 from common.AESencryption import AESCryptor
-from common.utils import sha256_hash
 from common.RSAencryption import RSACryptor
 
 SERVER_ADDRESS = '127.0.0.1'
@@ -89,7 +88,12 @@ KwIDAQAB
 -----END PUBLIC KEY-----
 '''
 
-class client:
+class Client:
+    '''
+    客户端类
+
+    Attributes: None
+    '''
     def __init__(self) -> None:
         context = ssl.create_default_context()
         # 信任自签名证书
@@ -100,9 +104,15 @@ class client:
         self.ssock = context.wrap_socket(self.sock, server_hostname=SERVER_ADDRESS)
     
     def upload_file(self, file_path: str):
+        '''
+        Usage: 客户端上传文件
+        
+        Args: 
+            file_path: 文件路径
+        '''
         if os.path.isfile(file_path):
             # 定义打包规则
-            fileinfo_size = struct.calcsize('128sl')
+            # fileinfo_size = struct.calcsize('128sl')
             # 定义文件头信息，包含文件名和文件大小
             header = {
                 'command': 'UPLOAD',
@@ -116,27 +126,40 @@ class client:
             print(fhead)
             self.ssock.send(fhead)
             # 将传输文件以二进制的形式分多次上传至服务器
-            fp = open(file_path, 'rb')
-            while True:
-                data = fp.read(1024)
-                if not data:
-                    print('{}文件发送完毕...'.format(os.path.basename(file_path)))
-                    break
-                print("发送的内容:", data)
-                tosend = encrypt_file(data)
-                print("加密后的消息:", tosend)
-                self.ssock.send(str(len(tosend)).encode('utf-8'))
-                self.ssock.send(tosend)
+            with open(file_path, 'rb') as fp:
+                while True:
+                    data = fp.read(1024)
+                    if not data:
+                        print(f'{os.path.basename(file_path)}文件发送完毕...')
+                        break
+                    print("发送的内容:", data)
+                    tosend = encrypt_file(data)
+                    print("加密后的消息:", tosend)
+                    self.ssock.send(str(len(tosend)).encode('utf-8'))
+                    self.ssock.send(tosend)
 
             # fp.close()
             self.ssock.close()
     
     def download_file(self, file_path: str):
-        #TODO 
-        pass
+        '''
+        Usage: 客户端下载文件
+        
+        Args: 
+            file_path: 文件路径
+        '''
+        # TODO: 
 
 
 def encrypt_file(data) -> bytes:
+    '''
+    Usage: 加密二进制数据
+        
+    Args: 
+        data: 需要加密数据
+    Returns:
+        加密后的数据
+    '''
     # RSA初始化
     rsa_cipher = RSACryptor()
     # AES初始化
@@ -166,15 +189,23 @@ def encrypt_file(data) -> bytes:
     # print("发送的消息:", send_message)
     return send_message
 
-def decrypt_file(data):
+def decrypt_file(data) -> bytes:
+    '''
+    Usage: 解密二进制数据
+        
+    Args: 
+        data: 需要解密的数据
+    Returns:
+        解密后的数据(完整性通过),否则返回None
+    '''
     rsa = RSACryptor()
     cipher_message, cipher_keyiv = pickle.loads(data)
-    print("密文:{}(类型{}) \n密钥:{}(类型{})".format(cipher_message, type(cipher_message), cipher_keyiv, type(cipher_keyiv)))
+    print(f"密文:{cipher_message}, 类型{type(cipher_message)}\n密钥:{cipher_keyiv}, 类型{type(cipher_keyiv)}")
     decrypted_keyiv = rsa.decrypt_message(cipher_keyiv, SERVER_PRIVATE_KEY)
     # print("接收到的密钥和初始向量:", decrypted_keyiv)
     keyiv = pickle.loads(decrypted_keyiv)
     key, iv = keyiv["Key"], keyiv["IV"]
-    print("解密后的密钥{}和初始向量{}:".format(key, iv))
+    print(f"解密后的密钥{key}和初始向量{iv}:")
     aes = AESCryptor(key, iv)
     decrypted_message = aes.decrypt_message(cipher_message)
     plain_message = pickle.loads(decrypted_message)
@@ -186,6 +217,7 @@ def decrypt_file(data):
         return content
     else:
         print("文件签名不一致!")
+        return None
 
 # def upload_file(file_path):
 #     nonce, ciphertext, tag = encrypt_file(file_path)
@@ -210,10 +242,10 @@ def decrypt_file(data):
 
 if __name__ == "__main__":
     mes = b"kskskkqqqhfhfh1234"
-    file_path = "test_files/1.txt"
+    file1_path = "test_files/1.txt"
     file2_path = "test_files/2.md"
     file3_path = "test_files/3.jpg"
-    client = client()
+    client = Client()
     client.upload_file(file3_path)
     # fp = open(file_path, 'rb')
     # data = fp.read(1024)

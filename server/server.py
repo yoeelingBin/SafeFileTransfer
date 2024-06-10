@@ -1,13 +1,11 @@
 import socket
 import ssl
 import sys
-import os
 import threading
 import struct
 import json
 import pickle
 import base64
-from common.utils import sha256_hash
 from common.RSAencryption import RSACryptor
 from common.AESencryption import AESCryptor
 
@@ -54,14 +52,23 @@ msT6Tt/GSW50sLrjf1v3M26FJS9dq7v0Tbl34Ka03CzaGD6L4Ho=
 '''
 
 def init_key():
+    '''
+    Usage: 生成公私钥
+    '''
     global SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY
     rsa = RSACryptor()
     rsa.gen_rsa_key_pairs()
     SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY = rsa.public_key, rsa.private_key
 
 
-class server:
+class Server:
+    '''
+    Description: 服务端类
+    '''
     def listen(self) -> None:
+        '''
+        Usage: 开启监听
+        '''
         context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
         context.load_cert_chain(certfile="certs/server.crt", keyfile="certs/server.key")
 
@@ -84,6 +91,12 @@ class server:
                 sys.exit(1)
 
     def handle_conn(self, conn):
+        '''
+        Usage: 处理连接
+
+        Args:
+            conn: SSL Socket连接
+        '''
         # 收到请求后的处理
         while True:
             # 申请相同大小的空间存放发送过来的文件名与文件大小信息
@@ -102,10 +115,17 @@ class server:
                     break
                 elif command == "DOWNLOAD":
                     self.handle_download(conn, header)
-            
+
     def handle_upload(self, conn, header):
+        '''
+        Usage: 处理文件上传
+
+        Args:
+            conn: SSL Socket连接
+            header: 文件头信息
+        '''
         file_name, file_size = header["fileName"], header["fileSize"]
-        print('Upload: file new name is %s, filesize is %s' % (file_name, file_size))
+        print(f'Upload: file new name is {file_name}, filesize is {file_size}')
         # 定义接收了的文件大小
         recvd_size = 0
         # 存储在uploaded_files目录中
@@ -132,19 +152,34 @@ class server:
         conn.close()
 
     def handle_download(self, conn, header):
+        '''
+        Usage: 处理文件下载
+
+        Args:
+            conn: SSL Socket连接
+            header: 文件头信息
+        '''
         #TODO
-        pass
     
 
+
 def decrypt_file(data):
+    '''
+    Usage: 解密二进制数据
+        
+    Args: 
+        data: 需要解密的数据
+    Returns:
+        解密后的数据(完整性通过),否则返回None
+    '''
     rsa = RSACryptor()
     cipher_message, cipher_keyiv = pickle.loads(data)
-    print("密文:{}(类型{})\n密钥:{}(类型{})".format(cipher_message, type(cipher_message), cipher_keyiv, type(cipher_keyiv)))
+    print(f"密文:{cipher_message}, 类型{type(cipher_message)}\n密钥:{cipher_keyiv}, 类型{type(cipher_keyiv)}")
     decrypted_keyiv = rsa.decrypt_message(cipher_keyiv, SERVER_PRIVATE_KEY)
     # print("接收到的密钥和初始向量:", decrypted_keyiv)
     keyiv = pickle.loads(decrypted_keyiv)
     key, iv = keyiv["Key"], keyiv["IV"]
-    print("解密后的密钥{}和初始向量{}:".format(key, iv))
+    print(f"解密后的密钥{key}和初始向量{iv}:")
     aes = AESCryptor(key, iv)
     decrypted_message = aes.decrypt_message(cipher_message)
     plain_message = pickle.loads(decrypted_message)
@@ -157,11 +192,12 @@ def decrypt_file(data):
         return content
     else:
         print("文件签名不一致!")
+        return None
 
 
 if __name__ == "__main__":
     # init_key()
-    server = server()
+    server = Server()
     server.listen()
     
 

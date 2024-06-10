@@ -1,42 +1,53 @@
+import base64
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
 from Crypto.Signature import pkcs1_15
 from Crypto.Cipher import PKCS1_OAEP
-import base64
+
 
 class RSACryptor:
+    '''
+    Description: RSA加密器
+
+    Attributes: 
+        key_size: 密钥大小, 默认2048
+    '''
     def __init__(self, key_size=2048) -> None:
         self.key_size = key_size
         self.private_key = None
         self.public_key = None
+        self.rsa_key = None
 
     def gen_rsa_key_pairs(self):
+        '''
+        Usage: 生成rsa密钥对
+        '''
         # 生成RSA密钥对
         key = RSA.generate(self.key_size)
         self.private_key = key.export_key("PEM")
         self.public_key = key.publickey().export_key()
 
-    def save_keys(self, dir: str):
+    def save_keys(self, save_dir: str):
         '''
         保存公私钥
         dir: 保存的目录
         '''
         if self.private_key and self.public_key:
-            with open(dir + "private.pem", "wb") as f:
+            with open(save_dir + "private.pem", "wb") as f:
                 f.write(self.private_key)
-            with open(dir + "public.pem", "wb") as f:
+            with open(save_dir + "public.pem", "wb") as f:
                 f.write(self.public_key)
         else:
             raise ValueError("Keys have not been generated yet.")
         
-    def load_keys(self, dir: str):
+    def load_keys(self, load_dir: str):
         '''
         加载密钥
         dir: 密钥保存的目录
         '''
-        with open(dir + "private.pem", "rb") as f:
+        with open(load_dir + "private.pem", "rb") as f:
             self.private_key = RSA.import_key(f.read())
-        with open(dir + "public.pem", "rb") as f:
+        with open(load_dir + "public.pem", "rb") as f:
             self.public_key = RSA.import_key(f.read())
 
     def encrypt_message(self, message: bytes | str, public_key) -> bytes:

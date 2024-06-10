@@ -1,12 +1,17 @@
-from Crypto.Cipher import AES
-import os
 import string
 import random
 import base64
+from Crypto.Cipher import AES
 
 # 使用AES的CBC模式进行加密
 class AESCryptor:
-    def __init__(self, key: bytes, iv: bytes = None, charset: str = "utf-8") -> None:
+    '''
+    Description: AES加密器
+    Attributes: 
+        key: 密钥
+        iv: 初始向量
+    '''
+    def __init__(self, key: bytes, iv: bytes = None) -> None:
         '''
         构建一个AES对象
         key: 秘钥，字节型数据
@@ -18,7 +23,6 @@ class AESCryptor:
         
         self.key = key
         self.iv = iv
-        self.charset = charset
         self.data = ""
 
     @staticmethod
@@ -100,6 +104,11 @@ class AESCryptor:
         return decrypted_text
 
 def genKey() -> bytes:
+    '''
+    Usage: 生成AES密钥
+
+    Returns: 16位的密钥
+    '''
     source = string.ascii_letters + string.digits
     key = "".join(random.sample(source, 16))
     return key.encode()

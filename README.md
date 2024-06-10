@@ -36,13 +36,13 @@
 #### 客户端
 
 1. **文件上传流程**
-  ![alt text](image.png)
+    ![alt text](image.png)
 1. **文件下载流程**
    
 #### 服务器端
 
 1. **文件接收流程**
-  ![alt text](image-1.png)
+    ![alt text](image-1.png)
 1. **文件发送流程**
 
 ## Download
@@ -53,6 +53,17 @@
 - 下载依赖 `pip install -r requirements.txt`
   - pycryptodome
 
+## Files Description
+
+- certs SSL证书存放目录
+- client 客户端
+- common 加解密模块
+- keys 客户端服务端公私钥存储
+- server 服务端
+- logs 日志
+- test_files 测试文件
+- uploaded_files 服务端存储文件
+
 ## Usage
 
 - Client
@@ -62,9 +73,10 @@
 
 ## Progress
 
-[x] RSA非对称加密
-[x] AES对称加密
-[x] 客户端文件上传和服务端文件下载储存
-[] 客户端下载文件
-[] 密钥交换
-[] 前端或命令行
+- [x] RSA非对称加密
+- [x] AES对称加密
+- [x] 客户端文件上传和服务端文件下载储存
+- [ ] 客户端下载文件
+- [ ] 密钥交换
+- [ ] 日志
+- [ ] 前端或命令行

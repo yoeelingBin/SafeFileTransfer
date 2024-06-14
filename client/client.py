@@ -271,6 +271,7 @@ if __name__ == "__main__":
     file2_path = "test_files/2.md"
     file3_path = "test_files/3.jpg"
     client = Client()
+    client.upload_file(file1_path)
     client.upload_file(file2_path)
     # fp = open(file_path, 'rb')
     # data = fp.read(1024)

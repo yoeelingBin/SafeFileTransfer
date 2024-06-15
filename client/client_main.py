@@ -35,10 +35,10 @@ class MainPage:
 
     def updateList(self):
         '''
-        Usage: 更新文件列表
+        Usage: 查看文件列表
         '''
-        self.client.update()
-        self.downloadPage.dealline()
+        file_list = self.client.list_files()
+        self.downloadPage.dealline(file_list)
 
     def downloadData(self):
         '''

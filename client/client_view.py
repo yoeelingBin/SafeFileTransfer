@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import filedialog
 import re
 import threading
+import os
 
 pattern = '{"文件名": "(.*?)", "上传者": "(.*?)", "上传时间": "(.*?)", "大小": "(.*?)"}'
 patch = re.compile(pattern)
@@ -18,7 +19,7 @@ class DownloadFrame(Frame):  # 继承Frame类
         self.createPage()
 
     def createPage(self):
-        title = ['2', '3', '4', '5', ]
+        title = ['2', '3', '4', ]
         self.box = ttk.Treeview(self, columns=title,
                                 yscrollcommand=self.scrollbar.set,
                                 show='headings', height=15)
@@ -26,14 +27,12 @@ class DownloadFrame(Frame):  # 继承Frame类
         self.box.column('2', width=300, anchor='center')
         self.box.column('3', width=150, anchor='center')
         self.box.column('4', width=150, anchor='center')
-        self.box.column('5', width=100, anchor='center')
 
         self.box.heading('2', text='文件名')
-        self.box.heading('3', text='上传者')
-        self.box.heading('4', text='上传时间')
-        self.box.heading('5', text='大小')
+        self.box.heading('3', text='上传时间')
+        self.box.heading('4', text='大小')
 
-        # self.dealline()
+        self.dealline(self.client.list_files())
 
         self.scrollbar.config(command=self.box.yview)
         self.box.pack()
@@ -43,43 +42,57 @@ class DownloadFrame(Frame):  # 继承Frame类
         Button(self, text=' 退出 ', command=self.isquit).pack(expand=1, fill="both", side="left", anchor="w")
 
 
-    def readdata(self, ):
-        """逐行读取文件"""
+    # 这里的实现方式是从log文件中读出文件的大小和上传时间等信息
+    # def readdata(self, ):
+    #     """逐行读取文件"""
 
-        # 读取gbk编码文件，需要加encoding='utf-8'
-        f = open('./ClientCache/result.txt', 'r', encoding='utf-8')
-        line = f.readline()
-        while line:
-            yield line
-            line = f.readline()
-        f.close()
+    #     # 读取gbk编码文件，需要加encoding='utf-8'
+    #     f = open('./ClientCache/result.txt', 'r', encoding='utf-8')
+    #     line = f.readline()
+    #     while line:
+    #         yield line
+    #         line = f.readline()
+    #     f.close()
 
-    def dealline(self, ):
-        op = self.readdata()
+    def dealline(self, file_list):
+        '''
+        Usage: 处理box中的数据
+        '''
+        # 清空现有的 Treeview 数据
         x = self.box.get_children()
         for item in x:
             self.box.delete(item)
-        while 1:
-            try:
-                line = next(op)
-            except StopIteration as e:
-                break
-            else:
-                result = patch.match(line)
-                self.box.insert('', 'end', values=[result.group(i) for i in range(1, 5)])
+        # 插入新的文件名到 Treeview
+        for file_name in file_list:
+            self.box.insert('', 'end', values=[file_name])
+        # while 1:
+        #     try:
+        #         line = next(op)
+        #     except StopIteration as e:
+        #         break
+        #     else:
+        #         result = patch.match(line)
+        #         self.box.insert('', 'end', values=[result.group(i) for i in range(1, 5)])
 
     def isquit(self):
+        '''
+        Usage: 询问是否退出窗口
+        '''
         is_quit = askyesno('警告', '你是否确定退出，这将会关闭窗口')
         if is_quit:
             self.quit()
 
     def download(self):
+        '''
+        Usage: 调用Client类的download_file函数进行下载
+        '''
         curItem = self.box.focus()
         print(self.box.item(curItem))
         filename = self.box.item(curItem)['values'][0]
 
         showinfo('提示！', message='点击确认文件将开始后台下载')
-        thread = threading.Thread(target=self.client.download, args=(filename,))
+        path = os.path.join('uploaded_files/', filename)
+        thread = threading.Thread(target=self.client.download_file, args=(path,))
         thread.start()
 
 

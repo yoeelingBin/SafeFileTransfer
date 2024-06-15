@@ -157,6 +157,40 @@ class Client:
                 return True
             else:
                 return False
+            
+    def list_files(self) -> list[str]:
+        '''
+        Usage: 列出服务端已上传的文件
+
+        Args:
+            username: 用户名
+            password: 密码
+        Returns:
+            文件列表
+        '''
+        header = {
+            'command': 'LIST',
+            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+        }
+        header_bytes = bytes(json.dumps(header).encode("utf-8"))
+        fhead = struct.pack('128s', header_bytes)
+        self.ssock.send(fhead)
+
+        fileinfo_size = struct.calcsize('128s')
+        buf = self.ssock.recv(fileinfo_size)
+        if buf:
+            header_json = str(struct.unpack('128s', buf)[0], encoding='utf-8').strip('\00')
+            print(header_json)
+            header = json.loads(header_json)
+            status = header['status']
+            if status == 'OK':
+                print("服务器文件列表:")
+                for file in header['files']:
+                    print(file)
+                return header['files']
+            else:
+                print("获取文件列表失败:", header['message'])
+                return None
 
     
     def upload_file(self, file_path: str):
@@ -276,5 +310,6 @@ if __name__ == "__main__":
     # client.upload_file(file2_path)
     # client.upload_file(file1_path)
     # client.register('testuser', 'testpasswd')
-    client.login('testuser', 'testpasswd1')
+    # client.login('testuser', 'testpasswd')
+    client.list_files()
 

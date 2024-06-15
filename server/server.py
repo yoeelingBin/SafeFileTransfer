@@ -8,6 +8,7 @@ import pickle
 import base64
 import pymysql
 import bcrypt
+import os
 from common.RSAencryption import RSACryptor
 from common.AESencryption import AESCryptor
 from common.utils import sha256_hash
@@ -142,6 +143,8 @@ class Server:
                         self.handle_register(conn, header)
                     elif command == "LOGIN":
                         self.handle_login(conn, header)
+                    elif command == "LIST":
+                        self.handle_list(conn, header)
         except Exception as e:
             print(f"Error during connection handling: {e}")
 
@@ -240,6 +243,25 @@ class Server:
                     response = {'status': 'ERROR', 'message': 'Invalid password'}
             else:
                 response = {'status': 'ERROR', 'message': 'User does not exist'}
+        except Exception as e:
+            response = {'status': 'ERROR', 'message': str(e)}
+
+        res_hex = bytes(json.dumps(response).encode('utf-8'))
+        res_pack = struct.pack('128s', res_hex)
+        conn.send(res_pack)
+
+    def handle_list(self, conn, header):
+        '''
+        Usage: 处理列出文件
+
+        Args:
+            conn: SSL Socket连接
+            header: 文件头信息
+        '''
+        time = header['time']
+        try:
+            files = os.listdir(UPLOAD_DIR)
+            response = {'status': 'OK', 'files': files}
         except Exception as e:
             response = {'status': 'ERROR', 'message': str(e)}
 

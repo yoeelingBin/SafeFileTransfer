@@ -50,8 +50,8 @@
 - clone代码 `git clone https://github.com/yoeelingBin/SafeFileTransfer.git`
 - 在certs目录下生成ssl自信任证书(可选？)
 - python版本3.11.9
+- 初始化数据库（in mysql）: `source path/db.sql`
 - 下载依赖 `pip install -r requirements.txt`
-  - pycryptodome
 
 ## Files Description
 
@@ -77,6 +77,6 @@
 - [x] AES对称加密
 - [x] 客户端文件上传和服务端文件下载储存
 - [ ] 客户端下载文件，需要对服务器上的文件list，前端选择相应文件后进行下载
-- [ ] 密钥交换
+- [x] 密钥交换(数字信封)
 - [ ] 日志
 - [x] 前端或命令行，使用tkinter

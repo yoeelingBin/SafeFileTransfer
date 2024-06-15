@@ -2,7 +2,8 @@ from tkinter import *
 from tkinter.messagebox import *
 from tkinter import ttk
 from tkinter import filedialog
-import re,threading
+import re
+import threading
 
 pattern = '{"文件名": "(.*?)", "上传者": "(.*?)", "上传时间": "(.*?)", "大小": "(.*?)"}'
 patch = re.compile(pattern)

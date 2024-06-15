@@ -10,46 +10,6 @@ from common.AESencryption import AESCryptor
 from common.RSAencryption import RSACryptor
 from common.utils import sha256_hash
 
-CLIENT_PRIVATE_KEY = '''-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEA3KVnjnA2BXxf6leV3EjRSdAHTdEHwmjjiJgFFBJiB+V4RCAE
-FDWiRA8tiU+LkAPZwH/XE8dWkO/cCc3f6LHrMC/BosVPLvxMWrkkQkH9eS/eTja9
-RpF0RxJozVT7bRJDhKd/dkOKdiqGzuzoR0YIJ+agFImPdauS/tlLK5ja+/RU6yL4
-iDs6u191h7vB4wAa2N2c/KSFOYjjbybskN77jyyFEA2miixqJJRAn6bRsa6PKRZ3
-X1jkcxUZqigRvxtEGhhYmZroKSJ/9OzuKz6vY9ZtqOR7NNxdYiMbGD/TljRxF+y/
-aSpavbPzMpRSLPz5yF4BCVm5r/4YZtII8wKmKwIDAQABAoIBAAf6PPvD59gb7pXY
-89Sil1qNWG5CU/797tgV8v0OSxgQ/l+sLqmSZNsEF3fi9d9PnFRe6uZOqz0TRwfd
-ty5BHIlB+MTLUHkY6yPOlNaGb0Ut62I1jXNbN/KH4l0mKO8BHYrSyYN7nqp2ECi0
-HRPSnuHeb0Q+0v6EpQxsy9B4NtasJiNan2snCEQ7i6OAGNsuIvc79MmIWmdSiRm7
-lC3ZpSNyom25Qo4DQbzbZ/oeozJ4N4CppRG0Lmhcvv6/2G43lWaGa7EuSoOUdOgR
-Ba7RPlPnGpW147yHleSGet1qmASf818qIOypNHoay1BAZgWmdszQv2/VhLTnZ9dv
-oSSviHUCgYEA6PoNAj2VuL/LmZQhU5NxiK99ELzALyFQQvsMaG4eafud5X2P6U/G
-lDe9kZNjLBacpeesiPf39S5r3V4YL3nf6emcXcTUIwZbG1fGKxge9Ixh4HgC+1ve
-B7NS702SXZmQ6VDCZi0obLKmJweaH7enT5GaLo8PVVsQ5R/B4SmSBI8CgYEA8nNo
-UBjKoMynlyAXEfX+KP+8fL9Ba1wFzWxOKyw5hTIhPxuuYYbpBdQU/JBGvu3yGLKt
-blbST2s28emMDlgHewWOzywTBmffmGqYt4gjjLFg8ZRxMql5q53PiOEL1zLunkq0
-JL/2yXA0KRO51HVj4KK+0zmiOUlM18j747AV6qUCgYBT92sg15lSkK2MmHq6aHWO
-0dC9a4nIcrU+rsR2DtofUHRD9dEcQYhMexpzkS85AJ1MngbtBpHzZ9uwWO1WjxJI
-d83Hbd0XEn9bh3MArRza/o14HUjV1vJazCKj5M1Ptr0nmde2g6gCJREFGBRQQhym
-7M8o4J6iIMQiECQMRrM9uQKBgFGjsthlwLVstHIbCCmwH6lGk/2dmTXBguKtOZUo
-CyZivvc1Jv8IIqcnxvlUy722+fJ/GA8zhRXhEFtdPSAHXF18fZ4dRTq+93enTU1f
-tjjF8dLnHUbl8mZreVqqDQaly9vZY9eMHFmwQqAiWEzGSp91rbQKkCmiGRIAR3Ff
-9cFRAoGBAMIKBnWWMOHSxvxS3XvNCQ+NiYylFGdFS0/VHQiDqvt8zQ3bkHNQ5Hpk
-XaY6GW2VVq/cDALzQOw2cb0uvyEFmFe78mYdsQAR4hGmA47QASXT6lqeYUuvnMGJ
-V5eKqdttensnCsFam8W6wVklBsO2KiS2xpqY9OfI1efUYz14nYIh
------END RSA PRIVATE KEY-----
-'''
-
-CLIENT_PUBLIC_KEY = '''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3KVnjnA2BXxf6leV3EjR
-SdAHTdEHwmjjiJgFFBJiB+V4RCAEFDWiRA8tiU+LkAPZwH/XE8dWkO/cCc3f6LHr
-MC/BosVPLvxMWrkkQkH9eS/eTja9RpF0RxJozVT7bRJDhKd/dkOKdiqGzuzoR0YI
-J+agFImPdauS/tlLK5ja+/RU6yL4iDs6u191h7vB4wAa2N2c/KSFOYjjbybskN77
-jyyFEA2miixqJJRAn6bRsa6PKRZ3X1jkcxUZqigRvxtEGhhYmZroKSJ/9OzuKz6v
-Y9ZtqOR7NNxdYiMbGD/TljRxF+y/aSpavbPzMpRSLPz5yF4BCVm5r/4YZtII8wKm
-KwIDAQAB
------END PUBLIC KEY-----
-'''
-
 def init_key():
     '''
     Usage: 生成公私钥
@@ -129,6 +89,75 @@ class Client:
                 self.server_public_key = public_key
                 print("收到服务端公钥\n" +  self.server_public_key.decode('utf-8') + "\n")
                 break
+
+    def register(self, username, password) -> bool:
+        '''
+        Usage: 注册
+
+        Args:
+            username: 用户名
+            password: 密码
+        Returns:
+            注册成功与否
+        '''
+        header = {
+            'command': 'REGISTER',
+            'username': username,
+            'password': password,
+            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+        }
+        header_bytes = bytes(json.dumps(header).encode("utf-8"))
+        fhead = struct.pack('128s', header_bytes)
+        self.ssock.send(fhead)
+
+        print('注册中...')
+        fileinfo_size = struct.calcsize('128s')
+        buf = self.ssock.recv(fileinfo_size)
+        if buf:
+            header_json = str(struct.unpack('128s', buf)[0], encoding='utf-8').strip('\00')
+            print(header_json)
+            header = json.loads(header_json)
+            status = header['status']
+            if status == 'OK':
+                print("注册成功")
+                return True
+            else:
+                return False
+
+    def login(self, username, password) -> bool:
+        '''
+        Usage: 登录
+
+        Args:
+            username: 用户名
+            password: 密码
+        Returns:
+            登录成功与否
+        '''
+        header = {
+            'command': 'LOGIN',
+            'username': username,
+            'password': password,
+            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+        }
+        header_bytes = bytes(json.dumps(header).encode("utf-8"))
+        fhead = struct.pack('128s', header_bytes)
+        self.ssock.send(fhead)
+
+        print('登录中...')
+        fileinfo_size = struct.calcsize('128s')
+        buf = self.ssock.recv(fileinfo_size)
+        if buf:
+            header_json = str(struct.unpack('128s', buf)[0], encoding='utf-8').strip('\00')
+            print(header_json)
+            header = json.loads(header_json)
+            status = header['status']
+            if status == 'OK':
+                print("登录成功")
+                return True
+            else:
+                return False
+
     
     def upload_file(self, file_path: str):
         '''
@@ -139,37 +168,32 @@ class Client:
         '''
         try:
             if os.path.isfile(file_path):
-                self._send_file_header(file_path)
-                self._send_file_content(file_path)
+                header = {
+                'command': 'UPLOAD',
+                'fileName': os.path.basename(file_path),
+                'fileSize': os.stat(file_path).st_size,
+                'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+                }
+
+                header_bytes = bytes(json.dumps(header).encode("utf-8"))
+                fhead = struct.pack('128s', header_bytes)
+                self.ssock.send(fhead)
+
+                with open(file_path, 'rb') as fp:
+                    while True:
+                        data = fp.read(1024)
+                        if not data:
+                            print(f'{os.path.basename(file_path)}文件发送完毕...')
+                            break
+                        print("发送的内容:", data)
+                        tosend = self.encrypt_file(data)
+                        print("加密后的消息", tosend)
+                        self.ssock.send(str(len(tosend)).encode('utf-8'))
+                        self.ssock.send(tosend)
             else:
                 print(f"文件 {file_path} 不存在")
         except Exception as e:
-            print(f"上传文件时发生错误: {e}")
-            
-
-    def _send_file_header(self, file_path: str):
-        header = {
-            'command': 'UPLOAD',
-            'fileName': os.path.basename(file_path),
-            'fileSize': os.stat(file_path).st_size,
-            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-        }
-        header_bytes = bytes(json.dumps(header).encode("utf-8"))
-        fhead = struct.pack('128s', header_bytes)
-        self.ssock.send(fhead)
-
-    def _send_file_content(self, file_path: str):
-        with open(file_path, 'rb') as fp:
-            while True:
-                data = fp.read(1024)
-                if not data:
-                    print(f'{os.path.basename(file_path)}文件发送完毕...')
-                    break
-                print("发送的内容:", data)
-                tosend = self.encrypt_file(data)
-                print("加密后的消息", tosend)
-                self.ssock.send(str(len(tosend)).encode('utf-8'))
-                self.ssock.send(tosend)
+            print(f"上传文件时发生错误: {e}")           
 
     def encrypt_file(self, data) -> bytes:
         '''
@@ -249,6 +273,8 @@ if __name__ == "__main__":
     file3_path = "test_files/3.jpg"
     client = Client()
     client.connect()
-    client.upload_file(file2_path)
-    client.upload_file(file1_path)
+    # client.upload_file(file2_path)
+    # client.upload_file(file1_path)
+    # client.register('testuser', 'testpasswd')
+    client.login('testuser', 'testpasswd1')
 

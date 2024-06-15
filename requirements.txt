@@ -1,1 +1,3 @@
 pycryptodome
+pymysql
+bcrypt

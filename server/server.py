@@ -6,6 +6,8 @@ import struct
 import json
 import pickle
 import base64
+import pymysql
+import bcrypt
 from common.RSAencryption import RSACryptor
 from common.AESencryption import AESCryptor
 from common.utils import sha256_hash
@@ -23,6 +25,20 @@ def init_key():
     rsa.save_keys("keys/server/server")
     return rsa.public_key, rsa.private_key
 
+def conn_db():
+    '''
+    Usage: 打开数据库连接
+    '''
+    #打开数据库连接
+    db = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='011014', db='file_transfer', charset='utf8mb4')
+    #使用cursor方法创建一个游标
+    cursor = db.cursor()
+    #查询数据库版本
+    cursor.execute("select version()")
+    data = cursor.fetchone()
+    print(f"Database Version:{data}")
+    return db, cursor
+
 
 class Server:
     '''
@@ -32,6 +48,7 @@ class Server:
         self.server_public_key, self.server_private_key = init_key()
         self.client_public_key = None
         self.rsa_cipher = RSACryptor()
+        self.db, self.cursor = conn_db()
 
     def listen(self) -> None:
         '''
@@ -121,6 +138,10 @@ class Server:
                         self.handle_upload(conn, header)
                     elif command == "DOWNLOAD":
                         self.handle_download(conn, header)
+                    elif command == "REGISTER":
+                        self.handle_register(conn, header)
+                    elif command == "LOGIN":
+                        self.handle_login(conn, header)
         except Exception as e:
             print(f"Error during connection handling: {e}")
 
@@ -168,6 +189,63 @@ class Server:
             header: 文件头信息
         '''
         #TODO
+
+    def handle_register(self, conn, header):
+        '''
+        Usage: 处理注册
+
+        Args:
+            conn: SSL Socket连接
+            header: 文件头信息
+        '''
+        username, password, time = header['username'], header['password'], header['time']
+        try:
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            sql = "INSERT INTO users (username, password) VALUES (%s, %s)"
+            val = (username, hashed_password)
+            self.cursor.execute(sql, val)
+            self.db.commit()
+            response = {
+                'status': 'OK',
+                'message': 'User registered successfully'
+            }
+        except pymysql.IntegrityError:
+            response = {'status': 'ERROR', 'message': 'User already exists'}
+        except Exception as e:
+            response = {'status': 'ERROR', 'message': str(e)}
+
+        res_hex = bytes(json.dumps(response).encode('utf-8'))
+        res_pack = struct.pack('128s', res_hex)
+        conn.send(res_pack)
+
+    def handle_login(self, conn, header):
+        '''
+        Usage: 处理登录
+
+        Args:
+            conn: SSL Socket连接
+            header: 文件头信息
+        '''
+        username, password, time = header['username'], header['password'], header['time']
+        try:
+            sql = "SELECT password FROM users WHERE username = %s"
+            val = (username,)
+            self.cursor.execute(sql, val)
+            result = self.cursor.fetchone()
+            if result:
+                hashed_password = result[0]
+                if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+                    response = {'status': 'OK', 'message': 'Login successful'}
+                else:
+                    response = {'status': 'ERROR', 'message': 'Invalid password'}
+            else:
+                response = {'status': 'ERROR', 'message': 'User does not exist'}
+        except Exception as e:
+            response = {'status': 'ERROR', 'message': str(e)}
+
+        res_hex = bytes(json.dumps(response).encode('utf-8'))
+        res_pack = struct.pack('128s', res_hex)
+        conn.send(res_pack)
     
     def decrypt_file(self, data) -> bytes:
         '''
@@ -203,7 +281,6 @@ class Server:
 
 
 if __name__ == "__main__":
-    # init_key()
     server = Server()
     server.listen()
     

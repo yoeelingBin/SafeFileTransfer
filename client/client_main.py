@@ -8,15 +8,15 @@ class MainPage:
     '''
     Description: 客户端上传主页
     '''
-    def __init__(self, master=None):
+    def __init__(self, master=None, client=None):
         self.root = master
         self.root.title("文件上传客户端")
         self.root.geometry("780x400")
-        self.client = Client()
+        self.client = client
         self.createPage()
 
         # 连接交换密钥
-        self.client.connect()
+        # self.client.connect()
 
     def createPage(self):
         '''

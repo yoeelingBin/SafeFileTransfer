@@ -15,11 +15,8 @@ class MainPage:
         self.client = Client()
         self.createPage()
 
-        # self.upload_button = tk.Button(master, text="选择文件上传", command=self.upload_file)
-        # self.upload_button.pack(pady=20)
-
-        # self.status_label = tk.Label(master, text="", fg="blue")
-        # self.status_label.pack(pady=20)
+        # 连接交换密钥
+        self.client.connect()
 
     def createPage(self):
         '''
@@ -71,20 +68,6 @@ class MainPage:
         self.downloadPage.pack_forget()
         self.uploadPage.pack_forget()
         self.aboutPage.pack()
-
-    # def upload_file(self):
-    #     '''
-    #     Usage: 上传文件
-    #     '''
-    #     file_path = filedialog.askopenfilename()
-    #     if file_path:
-    #         self.status_label.config(text="正在上传...")
-    #         try:
-    #             self.client.upload_file(file_path)
-    #             self.status_label.config(text="上传成功！")
-    #         except Exception as e:
-    #             messagebox.showerror("错误", f"上传失败: {e}")
-    #             self.status_label.config(text="上传失败")
 
 if __name__ == "__main__":
     root = tk.Tk()

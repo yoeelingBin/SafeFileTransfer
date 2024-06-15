@@ -38,34 +38,7 @@ XaY6GW2VVq/cDALzQOw2cb0uvyEFmFe78mYdsQAR4hGmA47QASXT6lqeYUuvnMGJ
 V5eKqdttensnCsFam8W6wVklBsO2KiS2xpqY9OfI1efUYz14nYIh
 -----END RSA PRIVATE KEY-----
 '''
-SERVER_PRIVATE_KEY = '''-----BEGIN RSA PRIVATE KEY-----
-MIIEogIBAAKCAQEAv8TQORU+5RHbuXv40mtFCYCmG3ML2a4VkhtLEDRArO0M+Dpb
-Blikbw5hPVHwcfSyqayFRFA+VUzSa8jwTwULz2MgCSav57nouwpGqJA8hznezTpl
-XMU1Gbjic8N1MDwIaRAtnQrgS+bRrrp/1ry+ygNcJRlt8e0hfJR1arHVqSKW897G
-cnGYXwVKZ7AwUHW54PzPegfc8lMGVWPHctdriYcMCynUK8LDGraayg06vy6OwsLI
-15m2W+q2eUbrdcHFYV3hmeWNhhvcgMPdYnfWaG//ImhD/rO4zLNZjtrKzsYWeGpv
-rmwgg5czU7X3rl2fm9Shhm9iB8c3QmF+tuXMOQIDAQABAoIBAAZbwz+xSaWUwwFS
-b/yiG+blwhw041azY/m1N/bwlJhnP7/XR39dXw5jnqvG1L8iiu3/T2fldTuk0XFL
-d1RXaX3V3pEPHFQFoQban18lcSxWqeGKJyQ9UbZpn/CQsYkI5Ip/Q9PqMWey3o75
-lhWLqpPOKrb8Md4Mq8iSr5X7EYeLFEfcLrxlJvJuAnqjMb8zK9h+/LGa8uUDSlxC
-cvSTm26g9IxSMpKC/CKXW8Dhi+y6J/F677G9yu6n//OqK3UXIyPYS9uALNrXSmKq
-GzbAcOxkIetFI/fm7L2vFk+vtdoLKgEw1OQ9+UhP3MqdOCkoFNAzcUNQNswxGyB2
-UVi3k6UCgYEAxm1dFOUvekxW2Ld5Km/oKNgmnzfIhcHzWsu4q0hxPPmYjM5m/Wcw
-v432QGzAaC7Y/VuvfH8dRFSvh6264O27jLia2hRv8uXxGL93nfthN03frI077Z4T
-DNY20jhekPfnRaHX/f3/L1sEFBDSJPEotqMk9gbnSvyB88GAFjIzXZ8CgYEA92jh
-wYF9kiohb9hPAsSGI6Dyyzns0KexYsjWM/XKM3uBREzQKfnBLeSyaS4kFVRcFhlV
-1wud8Rd/NH1OpeQy9jd+2k5wQrzlOvvKjcNBitw8Z9vaFAuzF5GpaiXT0BNOBbFd
-EROjEpUtjuN2hcPkr3J4mSYO2dpkF5yDazlO1ycCgYAyR/5BUD4ysGuFaSC0Bz1+
-NB+9UuZmNpqTFHKMPMQtHlZwv9DLP73TnIadFrG+9LgZo4UZeCCTcx4ztGtZmgRf
-iVv8DRe9JlVs3v/RsaSV3g7i67sW4GqVYybrKEuWUqtxMqzH+PgUKO0kpIqLv+yA
-M2EnUuKDVu8bNJpfhYMMowKBgFf8kcTqk0jG+Os4xyiZ0YacN5x0tjaiXKBgAmWq
-NMXIV3l9w84Zx0zV92kWgrifLryhN/jpZbsW+yMkqTKwDDuqEs/6c0wYt4EZiLiP
-xyBmIIljE5RrcL6iC9j3KPPn2aiGoi1viWATc4dMd5ssxohqsl7svP1XAJ+xBr+8
-OsCjAoGAC70z9Js1wiBlAQX5pq59rlsU+76KUSf8QtPxC3KTtsbRXwJjVyzvRMHg
-Z9uOhaAKGAVskyes+6yCrajr6OYDYniJnoUKX5AauxT1J0pgasAN4mZ3MrDkEy4r
-msT6Tt/GSW50sLrjf1v3M26FJS9dq7v0Tbl34Ka03CzaGD6L4Ho=
------END RSA PRIVATE KEY-----
-'''
+
 CLIENT_PUBLIC_KEY = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3KVnjnA2BXxf6leV3EjR
 SdAHTdEHwmjjiJgFFBJiB+V4RCAEFDWiRA8tiU+LkAPZwH/XE8dWkO/cCc3f6LHr
@@ -76,6 +49,15 @@ Y9ZtqOR7NNxdYiMbGD/TljRxF+y/aSpavbPzMpRSLPz5yF4BCVm5r/4YZtII8wKm
 KwIDAQAB
 -----END PUBLIC KEY-----
 '''
+
+def init_key():
+    '''
+    Usage: 生成公私钥
+    '''
+    rsa = RSACryptor()
+    rsa.gen_rsa_key_pairs()
+    rsa.save_keys("keys/client/client")
+    return rsa.public_key, rsa.private_key
 
 class Client:
     '''
@@ -101,7 +83,9 @@ iYcMCynUK8LDGraayg06vy6OwsLI15m2W+q2eUbrdcHFYV3hmeWNhhvcgMPdYnfW
 aG//ImhD/rO4zLNZjtrKzsYWeGpvrmwgg5czU7X3rl2fm9Shhm9iB8c3QmF+tuXM
 OQIDAQAB
 -----END PUBLIC KEY-----
-'''
+'''     
+        self.client_public_key, self.client_private_key = init_key()
+
 
     def _initialize_ssl_connection(self):
         context = ssl.create_default_context()
@@ -115,6 +99,7 @@ OQIDAQAB
         '''
         print("开始交换公钥")
         self.exchange_pubkey("keys/client/clientpublic.pem")
+        print("开始验证对方公钥完整性")
         self.verify_key(self.ssock)
 
     def exchange_pubkey(self, key_dir: str):
@@ -126,12 +111,13 @@ OQIDAQAB
         '''
         with open(key_dir, 'rb') as fi:
             public_key = fi.read()
+        print("发送客户端公钥\n" + public_key.decode("utf-8"))
         key_hash = sha256_hash(public_key)
         hash_message = pickle.dumps([public_key, key_hash])
         for _ in range(3):  # 尝试三次
             try:
                 self.ssock.send(hash_message)
-                print("公钥发送成功")
+                print("客户端公钥发送成功")
                 return
             except ConnectionRefusedError:
                 print("公钥发送失败，尝试重新发送")
@@ -148,9 +134,9 @@ OQIDAQAB
             message = sock.recv(4096)
             (public_key, key_hash) = pickle.loads(message)
             if key_hash == sha256_hash(public_key):
-                print("公钥完整性验证完成，可以开始传输文件\n")
+                print("服务端公钥完整性验证完成，可以开始传输文件\n")
                 self.server_public_key = public_key
-                print("收到公钥\n" +  self.server_public_key.decode('utf-8') + "\n")
+                print("收到服务端公钥\n" +  self.server_public_key.decode('utf-8') + "\n")
                 break
     
     def upload_file(self, file_path: str):
@@ -205,7 +191,7 @@ OQIDAQAB
         '''
         print("aes加密密钥:", self.aes_key, "aes初始向量:", self.aes_iv)
         
-        digest = self.rsa_cipher.sign_message(data, CLIENT_PRIVATE_KEY)
+        digest = self.rsa_cipher.sign_message(data, self.client_private_key)
         print("消息摘要:", digest)
         
         concated_message = {"Message": base64.b64encode(data), "Digest": digest}
@@ -236,7 +222,7 @@ OQIDAQAB
         '''
         cipher_message, cipher_keyiv = pickle.loads(data)
         print(f"密文:{cipher_message}, 类型{type(cipher_message)}\n密钥:{cipher_keyiv}, 类型{type(cipher_keyiv)}")
-        decrypted_keyiv = self.rsa_cipher.decrypt_message(cipher_keyiv, SERVER_PRIVATE_KEY)
+        decrypted_keyiv = self.rsa_cipher.decrypt_message(cipher_keyiv, CLIENT_PRIVATE_KEY)
         keyiv = pickle.loads(decrypted_keyiv)
         key, iv = keyiv["Key"], keyiv["IV"]
         print(f"解密后的密钥{key}和初始向量{iv}:")
@@ -249,7 +235,7 @@ OQIDAQAB
         digest = plain_message['Digest']
         print("解密的消息摘要", digest, type(digest))
         
-        if self.rsa_cipher.verify_signature(content, digest, CLIENT_PUBLIC_KEY):
+        if self.rsa_cipher.verify_signature(content, digest, self.server_public_key):
             return content
         else:
             print("文件签名不一致!")
@@ -271,11 +257,7 @@ if __name__ == "__main__":
     file2_path = "test_files/2.md"
     file3_path = "test_files/3.jpg"
     client = Client()
-    client.upload_file(file1_path)
+    client.connect()
     client.upload_file(file2_path)
-    # fp = open(file_path, 'rb')
-    # data = fp.read(1024)
-    # enc_data = encrypt_file(data)
-    # dec_data = decrypt_file(enc_data)
-    # print(dec_data)
-    # fp.close()
+    client.upload_file(file1_path)
+

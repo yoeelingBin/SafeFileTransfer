@@ -149,7 +149,7 @@ class Server:
             fp.write(decrypted_data)
         fp.close()
         print('receive done')
-        conn.close()
+        # conn.close()
 
     def handle_download(self, conn, header):
         '''

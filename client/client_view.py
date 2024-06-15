@@ -4,7 +4,6 @@ from tkinter import ttk
 from tkinter import filedialog
 import re
 import threading
-import os
 
 pattern = '{"文件名": "(.*?)", "上传者": "(.*?)", "上传时间": "(.*?)", "大小": "(.*?)"}'
 patch = re.compile(pattern)
@@ -91,8 +90,7 @@ class DownloadFrame(Frame):  # 继承Frame类
         filename = self.box.item(curItem)['values'][0]
 
         showinfo('提示！', message='点击确认文件将开始后台下载')
-        path = os.path.join('uploaded_files/', filename)
-        thread = threading.Thread(target=self.client.download_file, args=(path,))
+        thread = threading.Thread(target=self.client.download_file, args=(filename,))
         thread.start()
 
 

@@ -49,6 +49,9 @@ class Server:
         self.server_public_key, self.server_private_key = init_key()
         self.client_public_key = None
         self.rsa_cipher = RSACryptor()
+        self.aes_key = AESCryptor.gen_key()
+        self.aes_iv = AESCryptor.gen_iv()
+        self.aes_cipher = AESCryptor(self.aes_key, iv=self.aes_iv)
         self.db, self.cursor = conn_db()
 
     def listen(self) -> None:
@@ -160,8 +163,7 @@ class Server:
         print(f'Upload: file new name is {file_name}, filesize is {file_size}')
         # 定义接收了的文件大小
         recvd_size = 0
-        # 存储在uploaded_files目录中
-        fp = open("uploaded_files/" + str(file_name), "wb")
+        fp = open(UPLOAD_DIR + "/" + str(file_name), "wb")
         print("Start receiving")  
         while not recvd_size == file_size:
             if file_size - recvd_size > 1024:
@@ -191,7 +193,49 @@ class Server:
             conn: SSL Socket连接
             header: 文件头信息
         '''
-        #TODO
+        file_name = header['fileName']
+        file_path = os.path.join(UPLOAD_DIR+'/', str(file_name))
+        try:
+            if os.path.isfile(file_path):
+                response = {
+                    'status': 'OK', 
+                    'fileSize': os.stat(file_path).st_size,
+                    'message': 'File found'
+                }
+
+                res_hex = bytes(json.dumps(response).encode('utf-8'))
+                res_pack = struct.pack('128s', res_hex)
+                conn.send(res_pack)
+
+                with open(file_path, 'rb') as fp:
+                    while True:
+                        data = fp.read(1024)
+                        if not data:
+                            print(f'{os.path.basename(file_path)}文件发送完毕...')
+                            break
+                        print("发送的内容:", data)
+                        tosend = self.encrypt_file(data)
+                        print("加密后的消息", tosend)
+                        conn.send(str(len(tosend)).encode('utf-8'))
+                        conn.send(tosend)
+            else:
+                response = {
+                    'status': 'ERROR', 
+                    'message': 'File not found'
+                }
+                res_hex = bytes(json.dumps(response).encode('utf-8'))
+                res_pack = struct.pack('128s', res_hex)
+                conn.send(res_pack)
+                print(f"文件 {file_path} 不存在")
+        except Exception as e:
+                response = {
+                    'status': 'ERROR', 
+                    'message': f'Error {e} occuered while downloading'
+                }
+                res_hex = bytes(json.dumps(response).encode('utf-8'))
+                res_pack = struct.pack('128s', res_hex)
+                conn.send(res_pack)
+                print(f"下载文件时发生错误: {e}")    
 
     def handle_register(self, conn, header):
         '''
@@ -208,10 +252,7 @@ class Server:
             val = (username, hashed_password)
             self.cursor.execute(sql, val)
             self.db.commit()
-            response = {
-                'status': 'OK',
-                'message': 'User registered successfully'
-            }
+            response = {'status': 'OK', 'message': 'User registered successfully'}
         except pymysql.IntegrityError:
             response = {'status': 'ERROR', 'message': 'User already exists'}
         except Exception as e:
@@ -268,6 +309,37 @@ class Server:
         res_hex = bytes(json.dumps(response).encode('utf-8'))
         res_pack = struct.pack('128s', res_hex)
         conn.send(res_pack)
+
+    def encrypt_file(self, data) -> bytes:
+        '''
+        加密二进制数据
+        
+        Args: 
+            data: 需要加密数据
+        Returns:
+            加密后的数据
+        '''
+        print("aes加密密钥:", self.aes_key, "aes初始向量:", self.aes_iv)
+        
+        digest = self.rsa_cipher.sign_message(data, self.server_private_key)
+        print("消息摘要:", digest)
+        
+        concated_message = {"Message": base64.b64encode(data), "Digest": digest}
+        dumpped_message = pickle.dumps(concated_message)
+        
+        cipher_message = self.aes_cipher.encrypt_message(dumpped_message)
+        
+        keyiv = {"Key": self.aes_key, "IV": self.aes_iv}
+        print("密钥和初始向量", keyiv)
+        dumpped_keyiv = pickle.dumps(keyiv)
+        print("序列化后的密钥和初始向量", dumpped_keyiv)
+        
+        cipher_keyiv = self.rsa_cipher.encrypt_message(dumpped_keyiv, self.client_public_key)
+        print("加密后的密钥和初始向量", cipher_keyiv)
+        
+        send_message = pickle.dumps([cipher_message, cipher_keyiv])
+        print("序列化前的发送消息", [cipher_message, cipher_keyiv])
+        return send_message
     
     def decrypt_file(self, data) -> bytes:
         '''

@@ -6,6 +6,7 @@ import pickle
 import struct
 import time
 import json
+import tkinter
 from common.AESencryption import AESCryptor
 from common.RSAencryption import RSACryptor
 from common.utils import sha256_hash
@@ -203,10 +204,10 @@ class Client:
         try:
             if os.path.isfile(file_path):
                 header = {
-                'command': 'UPLOAD',
-                'fileName': os.path.basename(file_path),
-                'fileSize': os.stat(file_path).st_size,
-                'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+                    'command': 'UPLOAD',
+                    'fileName': os.path.basename(file_path),
+                    'fileSize': os.stat(file_path).st_size,
+                    'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
                 }
 
                 header_bytes = bytes(json.dumps(header).encode("utf-8"))
@@ -224,10 +225,64 @@ class Client:
                         print("加密后的消息", tosend)
                         self.ssock.send(str(len(tosend)).encode('utf-8'))
                         self.ssock.send(tosend)
+                tkinter.messagebox.showinfo('提示！', message='上传成功')
             else:
                 print(f"文件 {file_path} 不存在")
         except Exception as e:
-            print(f"上传文件时发生错误: {e}")           
+            print(f"上传文件时发生错误: {e}")    
+
+    def download_file(self, file_name: str):
+        '''
+        Usage: 客户端下载文件
+        
+        Args: 
+            file_path: 文件路径
+        '''
+        header = {
+            'command': 'DOWNLOAD',
+            'fileName': file_name,
+            'fileSize': '',
+            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+        }
+
+        header_bytes = bytes(json.dumps(header).encode("utf-8"))
+        fhead = struct.pack('128s', header_bytes)
+        self.ssock.send(fhead)
+
+        fileinfo_size = struct.calcsize('128sl')
+        buf = self.ssock.recv(fileinfo_size)
+        if buf:
+            header_json = str(struct.unpack('128s', buf)[0], encoding='utf-8').strip('\00')
+            print(header_json)
+            header = json.loads(header_json)
+            status = header['status']     
+
+            if status == 'OK':
+                file_size = header["fileSize"]
+                file_path = os.path.join("download_files/", file_name)
+                print(f'download file path is {file_path}, filesize is {file_size}')
+                recvd_size = 0
+                fp = open(file_path, 'wb')
+                print("Start receiving")  
+                while not recvd_size == file_size:
+                    if file_size - recvd_size > 1024:
+                        # 由于经过加密，实际发送的文件长度和原本不一致
+                        recv_len = int(self.ssock.recv(1024).decode("utf-8"))
+                        print("该段发送长度: ", recv_len)
+                        rdata = self.ssock.recv(recv_len)
+                        decrypted_data = self.decrypt_file(rdata)
+                        recvd_size += len(decrypted_data)
+                    else:
+                        recv_len = int(self.ssock.recv(1024).decode("utf-8"))
+                        print("该段发送长度: ", recv_len)
+                        rdata = self.ssock.recv(recv_len)
+                        # print(rdata)
+                        decrypted_data = self.decrypt_file(rdata)
+                        recvd_size = file_size
+                    fp.write(decrypted_data)
+                fp.close()
+                print('receive done')
+                tkinter.messagebox.showinfo('提示！',message='下载成功：' + file_name)
 
     def encrypt_file(self, data) -> bytes:
         '''
@@ -289,15 +344,6 @@ class Client:
         else:
             print("文件签名不一致!")
             return None
-    
-    def download_file(self, file_path: str):
-        '''
-        Usage: 客户端下载文件
-        
-        Args: 
-            file_path: 文件路径
-        '''
-        # TODO: 
 
 
 if __name__ == "__main__":

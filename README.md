@@ -63,11 +63,12 @@
 - logs 日志
 - test_files 测试文件
 - uploaded_files 服务端存储文件
+- download_files 客户端下载的文件
 
 ## Usage
 
 - Client
-  - `python .\client\client.py`
+  - `python .\client\client_login.py`
 - Server
   - `python .\server\server.py`
 
@@ -76,7 +77,7 @@
 - [x] RSA非对称加密
 - [x] AES对称加密
 - [x] 客户端文件上传和服务端文件下载储存
-- [ ] 客户端下载文件，需要对服务器上的文件list，前端选择相应文件后进行下载
+- [x] 客户端下载文件，需要对服务器上的文件list，前端选择相应文件后进行下载
 - [x] 密钥交换(数字信封)
 - [ ] 日志
 - [x] 前端或命令行，使用tkinter

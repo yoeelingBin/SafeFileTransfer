@@ -74,16 +74,7 @@ class Client:
         self.aes_key = AESCryptor.gen_key()
         self.aes_iv = AESCryptor.gen_iv()
         self.aes_cipher = AESCryptor(self.aes_key, iv=self.aes_iv)
-        self.server_public_key = '''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv8TQORU+5RHbuXv40mtF
-CYCmG3ML2a4VkhtLEDRArO0M+DpbBlikbw5hPVHwcfSyqayFRFA+VUzSa8jwTwUL
-z2MgCSav57nouwpGqJA8hznezTplXMU1Gbjic8N1MDwIaRAtnQrgS+bRrrp/1ry+
-ygNcJRlt8e0hfJR1arHVqSKW897GcnGYXwVKZ7AwUHW54PzPegfc8lMGVWPHctdr
-iYcMCynUK8LDGraayg06vy6OwsLI15m2W+q2eUbrdcHFYV3hmeWNhhvcgMPdYnfW
-aG//ImhD/rO4zLNZjtrKzsYWeGpvrmwgg5czU7X3rl2fm9Shhm9iB8c3QmF+tuXM
-OQIDAQAB
------END PUBLIC KEY-----
-'''     
+        self.server_public_key = None
         self.client_public_key, self.client_private_key = init_key()
 
 
@@ -222,7 +213,7 @@ OQIDAQAB
         '''
         cipher_message, cipher_keyiv = pickle.loads(data)
         print(f"密文:{cipher_message}, 类型{type(cipher_message)}\n密钥:{cipher_keyiv}, 类型{type(cipher_keyiv)}")
-        decrypted_keyiv = self.rsa_cipher.decrypt_message(cipher_keyiv, CLIENT_PRIVATE_KEY)
+        decrypted_keyiv = self.rsa_cipher.decrypt_message(cipher_keyiv, self.client_private_key)
         keyiv = pickle.loads(decrypted_keyiv)
         key, iv = keyiv["Key"], keyiv["IV"]
         print(f"解密后的密钥{key}和初始向量{iv}:")

@@ -13,44 +13,6 @@ from common.utils import sha256_hash
 SERVER_ADDRESS = '127.0.0.1'
 SERVER_PORT = 12345
 UPLOAD_DIR = 'uploaded_files'
-CLIENT_PUBLIC_KEY = '''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3KVnjnA2BXxf6leV3EjR
-SdAHTdEHwmjjiJgFFBJiB+V4RCAEFDWiRA8tiU+LkAPZwH/XE8dWkO/cCc3f6LHr
-MC/BosVPLvxMWrkkQkH9eS/eTja9RpF0RxJozVT7bRJDhKd/dkOKdiqGzuzoR0YI
-J+agFImPdauS/tlLK5ja+/RU6yL4iDs6u191h7vB4wAa2N2c/KSFOYjjbybskN77
-jyyFEA2miixqJJRAn6bRsa6PKRZ3X1jkcxUZqigRvxtEGhhYmZroKSJ/9OzuKz6v
-Y9ZtqOR7NNxdYiMbGD/TljRxF+y/aSpavbPzMpRSLPz5yF4BCVm5r/4YZtII8wKm
-KwIDAQAB
------END PUBLIC KEY-----
-'''
-SERVER_PRIVATE_KEY = '''-----BEGIN RSA PRIVATE KEY-----
-MIIEogIBAAKCAQEAv8TQORU+5RHbuXv40mtFCYCmG3ML2a4VkhtLEDRArO0M+Dpb
-Blikbw5hPVHwcfSyqayFRFA+VUzSa8jwTwULz2MgCSav57nouwpGqJA8hznezTpl
-XMU1Gbjic8N1MDwIaRAtnQrgS+bRrrp/1ry+ygNcJRlt8e0hfJR1arHVqSKW897G
-cnGYXwVKZ7AwUHW54PzPegfc8lMGVWPHctdriYcMCynUK8LDGraayg06vy6OwsLI
-15m2W+q2eUbrdcHFYV3hmeWNhhvcgMPdYnfWaG//ImhD/rO4zLNZjtrKzsYWeGpv
-rmwgg5czU7X3rl2fm9Shhm9iB8c3QmF+tuXMOQIDAQABAoIBAAZbwz+xSaWUwwFS
-b/yiG+blwhw041azY/m1N/bwlJhnP7/XR39dXw5jnqvG1L8iiu3/T2fldTuk0XFL
-d1RXaX3V3pEPHFQFoQban18lcSxWqeGKJyQ9UbZpn/CQsYkI5Ip/Q9PqMWey3o75
-lhWLqpPOKrb8Md4Mq8iSr5X7EYeLFEfcLrxlJvJuAnqjMb8zK9h+/LGa8uUDSlxC
-cvSTm26g9IxSMpKC/CKXW8Dhi+y6J/F677G9yu6n//OqK3UXIyPYS9uALNrXSmKq
-GzbAcOxkIetFI/fm7L2vFk+vtdoLKgEw1OQ9+UhP3MqdOCkoFNAzcUNQNswxGyB2
-UVi3k6UCgYEAxm1dFOUvekxW2Ld5Km/oKNgmnzfIhcHzWsu4q0hxPPmYjM5m/Wcw
-v432QGzAaC7Y/VuvfH8dRFSvh6264O27jLia2hRv8uXxGL93nfthN03frI077Z4T
-DNY20jhekPfnRaHX/f3/L1sEFBDSJPEotqMk9gbnSvyB88GAFjIzXZ8CgYEA92jh
-wYF9kiohb9hPAsSGI6Dyyzns0KexYsjWM/XKM3uBREzQKfnBLeSyaS4kFVRcFhlV
-1wud8Rd/NH1OpeQy9jd+2k5wQrzlOvvKjcNBitw8Z9vaFAuzF5GpaiXT0BNOBbFd
-EROjEpUtjuN2hcPkr3J4mSYO2dpkF5yDazlO1ycCgYAyR/5BUD4ysGuFaSC0Bz1+
-NB+9UuZmNpqTFHKMPMQtHlZwv9DLP73TnIadFrG+9LgZo4UZeCCTcx4ztGtZmgRf
-iVv8DRe9JlVs3v/RsaSV3g7i67sW4GqVYybrKEuWUqtxMqzH+PgUKO0kpIqLv+yA
-M2EnUuKDVu8bNJpfhYMMowKBgFf8kcTqk0jG+Os4xyiZ0YacN5x0tjaiXKBgAmWq
-NMXIV3l9w84Zx0zV92kWgrifLryhN/jpZbsW+yMkqTKwDDuqEs/6c0wYt4EZiLiP
-xyBmIIljE5RrcL6iC9j3KPPn2aiGoi1viWATc4dMd5ssxohqsl7svP1XAJ+xBr+8
-OsCjAoGAC70z9Js1wiBlAQX5pq59rlsU+76KUSf8QtPxC3KTtsbRXwJjVyzvRMHg
-Z9uOhaAKGAVskyes+6yCrajr6OYDYniJnoUKX5AauxT1J0pgasAN4mZ3MrDkEy4r
-msT6Tt/GSW50sLrjf1v3M26FJS9dq7v0Tbl34Ka03CzaGD6L4Ho=
------END RSA PRIVATE KEY-----
-'''
 
 def init_key():
     '''
@@ -240,45 +202,11 @@ class Server:
             return None
 
 
-# def decrypt_file(data):
-#     '''
-#     Usage: 解密二进制数据
-        
-#     Args: 
-#         data: 需要解密的数据
-#     Returns:
-#         解密后的数据(完整性通过),否则返回None
-#     '''
-#     rsa = RSACryptor()
-#     cipher_message, cipher_keyiv = pickle.loads(data)
-#     print(f"密文:{cipher_message}, 类型{type(cipher_message)}\n密钥:{cipher_keyiv}, 类型{type(cipher_keyiv)}")
-#     decrypted_keyiv = rsa.decrypt_message(cipher_keyiv, SERVER_PRIVATE_KEY)
-#     # print("接收到的密钥和初始向量:", decrypted_keyiv)
-#     keyiv = pickle.loads(decrypted_keyiv)
-#     key, iv = keyiv["Key"], keyiv["IV"]
-#     print(f"解密后的密钥{key}和初始向量{iv}:")
-#     aes = AESCryptor(key, iv)
-#     decrypted_message = aes.decrypt_message(cipher_message)
-#     plain_message = pickle.loads(decrypted_message)
-#     content = base64.b64decode(plain_message['Message'])
-#     print("解密的内容是", content)
-#     digest = plain_message['Digest']
-#     print("解密的消息摘要", digest, type(digest))
-#     if rsa.verify_signature(content, digest, CLIENT_PUBLIC_KEY):
-#         print("完整性验证通过!")
-#         return content
-#     else:
-#         print("文件签名不一致!")
-#         return None
-
-
 if __name__ == "__main__":
     # init_key()
     server = Server()
     server.listen()
     
-
-
 
 # Example usage:
 # Start the server: python server/server.py

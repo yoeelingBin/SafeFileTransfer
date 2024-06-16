@@ -351,7 +351,6 @@ class Client:
 
 
 if __name__ == "__main__":
-    mes = b"kskskkqqqhfhfh1234"
     file1_path = "test_files/1.txt"
     file2_path = "test_files/2.md"
     file3_path = "test_files/3.jpg"

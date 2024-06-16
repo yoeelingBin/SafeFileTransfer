@@ -25,7 +25,7 @@ class MainPage:
         self.downloadPage = DownloadFrame(self.root, self.client)  # 创建不同Frame
         self.uploadPage = UploadFrame(self.root, self.client)
         self.aboutPage = AboutFrame(self.root, self.client)
-        self.uploadPage.pack()  # 默认显示数据录入界面
+        self.downloadPage.pack()  # 默认显示数据录入界面
         menubar = Menu(self.root)
         menubar.add_command(label='文件列表', command=self.downloadData)
         menubar.add_command(label='上传文件', command=self.uploadData)

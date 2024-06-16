@@ -9,6 +9,7 @@ import base64
 import os
 import pymysql
 import bcrypt
+import logging
 from common.RSAencryption import RSACryptor
 from common.AESencryption import AESCryptor
 from common.utils import sha256_hash
@@ -37,7 +38,7 @@ def conn_db():
     #查询数据库版本
     cursor.execute("select version()")
     data = cursor.fetchone()
-    print(f"Database Version:{data}")
+    print(f"数据库版本:{data}")
     return db, cursor
 
 
@@ -46,13 +47,24 @@ class Server:
     Description: 服务端类
     '''
     def __init__(self):
+        # 设置日志记录配置
+        logging.basicConfig(level=logging.INFO,
+                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                            handlers=[
+                                logging.FileHandler("logs/server.log"),
+                                logging.StreamHandler()
+                            ])
+        self.logger = logging.getLogger(__name__)
+
+        self.logger.info("Initializing server...")
+        self.db, self.cursor = conn_db()
         self.server_public_key, self.server_private_key = init_key()
         self.client_public_key = None
         self.rsa_cipher = RSACryptor()
         self.aes_key = AESCryptor.gen_key()
         self.aes_iv = AESCryptor.gen_iv()
         self.aes_cipher = AESCryptor(self.aes_key, iv=self.aes_iv)
-        self.db, self.cursor = conn_db()
+        
 
     def listen(self) -> None:
         '''
@@ -65,18 +77,18 @@ class Server:
             try:
                 sock.bind((SERVER_ADDRESS, SERVER_PORT))
                 sock.listen(5)
-                print("服务器开启监听...")
+                self.logger.info("Server listening on %s:%d", SERVER_ADDRESS, SERVER_PORT)
                 # 打包成ssl socket
                 with context.wrap_socket(sock, server_side=True) as ssock:
                     while True:
                         # 接收客户端连接
                         connection, client_address = ssock.accept()
-                        print(f'客户端{client_address}连接: ')
+                        self.logger.info('Connected by: %s', client_address)
                         #开启多线程,这里arg后面一定要跟逗号，否则报错
                         thread = threading.Thread(target = self.handle_conn, args=(connection,))
                         thread.start()
             except socket.error as msg:
-                print(msg)
+                self.logger.error("Socket error: %s", msg)
                 sys.exit(1)
 
     def exchange_pubkey(self, key_dir: str, conn):
@@ -95,10 +107,11 @@ class Server:
             try:
                 conn.send(hash_message)
                 print("服务端公钥发送成功")
+                self.logger.info("Sent server public key to client")
                 return
             except ConnectionRefusedError:
                 print("公钥发送失败，尝试重新发送")
-        print("公钥发送失败")
+        self.logger.info("Server public key failed")
     
     def verify_key(self, conn):
         '''
@@ -111,10 +124,19 @@ class Server:
             message = conn.recv(4096)
             (public_key, key_hash) = pickle.loads(message)
             if key_hash == sha256_hash(public_key):
-                print("客户端公钥完整性验证完成，可以开始传输文件\n")
+                self.logger.info("Received client public key")
                 self.client_public_key = public_key
                 print("收到客户端公钥\n" +  self.client_public_key.decode('utf-8') + "\n")
                 break
+
+    def connect(self, conn):
+        '''
+        Usage: 与客户端进行连接
+        '''
+        print("开始交换公钥")
+        self.exchange_pubkey("keys/server/serverpublic.pem", conn)
+        print("开始验证对方公钥完整性")
+        self.verify_key(conn)
 
     def handle_conn(self, conn):
         '''
@@ -124,8 +146,8 @@ class Server:
             conn: SSL Socket连接
         '''
         try:
-            self.exchange_pubkey("keys/server/serverpublic.pem", conn)
-            self.verify_key(conn)
+            # 公钥交换
+            self.connect(conn)
             while True:
                 # 申请相同大小的空间存放发送过来的文件名与文件大小信息
                 fileinfo_size = struct.calcsize('128sl')
@@ -149,7 +171,7 @@ class Server:
                     elif command == "LIST":
                         self.handle_list(conn, header)
         except Exception as e:
-            print(f"连接处理发生错误: {e}")
+            self.logger.error("Error during connection handling: %s", e)
 
     def handle_upload(self, conn, header):
         '''
@@ -184,6 +206,7 @@ class Server:
             fp.write(decrypted_data)
         fp.close()
         print('文件接收完毕')
+        self.logger.info("File %s upload success, file size is %s", file_name, file_size)
         # conn.close()
 
     def handle_download(self, conn, header):
@@ -219,6 +242,7 @@ class Server:
                         print("加密后的消息", tosend)
                         conn.send(str(len(tosend)).encode('utf-8'))
                         conn.send(tosend)
+                self.logger.info("File %s transfer success", file_name)
             else:
                 response = {
                     'status': 'ERROR', 
@@ -227,7 +251,7 @@ class Server:
                 res_hex = bytes(json.dumps(response).encode('utf-8'))
                 res_pack = struct.pack('128s', res_hex)
                 conn.send(res_pack)
-                print(f"文件 {file_path} 不存在")
+                self.logger.warning("File %s not exist", file_name)
         except Exception as e:
                 response = {
                     'status': 'ERROR', 
@@ -236,7 +260,7 @@ class Server:
                 res_hex = bytes(json.dumps(response).encode('utf-8'))
                 res_pack = struct.pack('128s', res_hex)
                 conn.send(res_pack)
-                print(f"下载文件时发生错误: {e}")    
+                self.logger.error("File transfer error: %s", e) 
 
     def handle_register(self, conn, header):
         '''
@@ -246,7 +270,7 @@ class Server:
             conn: SSL Socket连接
             header: 文件头信息
         '''
-        username, password, time = header['username'], header['password'], header['time']
+        username, password = header['username'], header['password']
         try:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
             sql = "INSERT INTO users (username, password) VALUES (%s, %s)"
@@ -254,10 +278,13 @@ class Server:
             self.cursor.execute(sql, val)
             self.db.commit()
             response = {'status': 'OK', 'message': 'User registered successfully'}
+            self.logger.info("User %s registered successfully.", username)
         except pymysql.IntegrityError:
             response = {'status': 'ERROR', 'message': 'User already exists'}
+            self.logger.warning("Registration failed: User %s already exists.", username)
         except Exception as e:
             response = {'status': 'ERROR', 'message': str(e)}
+            self.logger.error("Registration failed: %s", e)
 
         res_hex = bytes(json.dumps(response).encode('utf-8'))
         res_pack = struct.pack('128s', res_hex)
@@ -271,7 +298,7 @@ class Server:
             conn: SSL Socket连接
             header: 文件头信息
         '''
-        username, password, time = header['username'], header['password'], header['time']
+        username, password = header['username'], header['password']
         try:
             sql = "SELECT password FROM users WHERE username = %s"
             val = (username,)
@@ -281,12 +308,16 @@ class Server:
                 hashed_password = result[0]
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                     response = {'status': 'OK', 'message': 'Login successful'}
+                    self.logger.info("User %s logged in successfully.", username)
                 else:
                     response = {'status': 'ERROR', 'message': 'Invalid password'}
+                    self.logger.warning("Login failed: Invalid password for user %s.", username)
             else:
                 response = {'status': 'ERROR', 'message': 'User does not exist'}
+                self.logger.warning("Login failed: User %s does not exist.", username)
         except Exception as e:
             response = {'status': 'ERROR', 'message': str(e)}
+            self.logger.error("Login failed: %s", e)
 
         res_hex = bytes(json.dumps(response).encode('utf-8'))
         res_pack = struct.pack('128s', res_hex)
@@ -300,12 +331,13 @@ class Server:
             conn: SSL Socket连接
             header: 文件头信息
         '''
-        time = header['time']
         try:
             files = os.listdir(UPLOAD_DIR)
             response = {'status': 'OK', 'files': files}
+            self.logger.info("Listed files: %s", files)
         except Exception as e:
             response = {'status': 'ERROR', 'message': str(e)}
+            self.logger.error("Failed to list files: %s", e)
 
         res_hex = bytes(json.dumps(response).encode('utf-8'))
         res_pack = struct.pack('128s', res_hex)

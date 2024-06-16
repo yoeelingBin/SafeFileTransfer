@@ -6,9 +6,9 @@ import struct
 import json
 import pickle
 import base64
+import os
 import pymysql
 import bcrypt
-import os
 from common.RSAencryption import RSACryptor
 from common.AESencryption import AESCryptor
 from common.utils import sha256_hash
@@ -65,13 +65,13 @@ class Server:
             try:
                 sock.bind((SERVER_ADDRESS, SERVER_PORT))
                 sock.listen(5)
-                print("Server Listening...")
+                print("服务器开启监听...")
                 # 打包成ssl socket
                 with context.wrap_socket(sock, server_side=True) as ssock:
                     while True:
                         # 接收客户端连接
                         connection, client_address = ssock.accept()
-                        print('Connected by: ', client_address)
+                        print(f'客户端{client_address}连接: ')
                         #开启多线程,这里arg后面一定要跟逗号，否则报错
                         thread = threading.Thread(target = self.handle_conn, args=(connection,))
                         thread.start()
@@ -81,7 +81,7 @@ class Server:
 
     def exchange_pubkey(self, key_dir: str, conn):
         '''
-        Usage: 向服务端发送客户端公钥
+        Usage: 向客户端发送服务端公钥
 
         Args:
             key_dir: 存放公钥的目录
@@ -102,7 +102,7 @@ class Server:
     
     def verify_key(self, conn):
         '''
-        Usage: 对服务端公钥完整性进行验证
+        Usage: 对客户端公钥完整性进行验证
 
         Args:
             sock: SSLSocket
@@ -149,7 +149,7 @@ class Server:
                     elif command == "LIST":
                         self.handle_list(conn, header)
         except Exception as e:
-            print(f"Error during connection handling: {e}")
+            print(f"连接处理发生错误: {e}")
 
     def handle_upload(self, conn, header):
         '''
@@ -160,11 +160,12 @@ class Server:
             header: 文件头信息
         '''
         file_name, file_size = header["fileName"], header["fileSize"]
-        print(f'Upload: file new name is {file_name}, filesize is {file_size}')
+        print(f'上传文件名: {file_name}, 文件大小: {file_size}')
         # 定义接收了的文件大小
         recvd_size = 0
-        fp = open(UPLOAD_DIR + "/" + str(file_name), "wb")
-        print("Start receiving")  
+        file_path = os.path.join(UPLOAD_DIR + "/", str(file_name))
+        fp = open(file_path, "wb")
+        print("开始接收文件")  
         while not recvd_size == file_size:
             if file_size - recvd_size > 1024:
                 # 由于经过加密，实际发送的文件长度和原本不一致
@@ -182,7 +183,7 @@ class Server:
                 recvd_size = file_size
             fp.write(decrypted_data)
         fp.close()
-        print('receive done')
+        print('文件接收完毕')
         # conn.close()
 
     def handle_download(self, conn, header):

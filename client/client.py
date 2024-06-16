@@ -11,6 +11,8 @@ from common.AESencryption import AESCryptor
 from common.RSAencryption import RSACryptor
 from common.utils import sha256_hash
 
+DOWNLOAD_DIR = 'download_files'
+
 def init_key():
     '''
     Usage: 生成公私钥
@@ -122,8 +124,10 @@ class Client:
             if status == 'OK':
                 print("注册成功")
                 return True
-            else:
+            elif status == 'ERROR':
+                print("注册失败")
                 return False
+        return False
 
     def login(self, username, password) -> bool:
         '''
@@ -156,18 +160,18 @@ class Client:
             if status == 'OK':
                 print("登录成功")
                 return True
-            else:
+            elif status == 'ERROR':
+                print("登录失败")
                 return False
+        return False
             
     def list_files(self) -> list[str]:
         '''
         Usage: 列出服务端已上传的文件
 
         Args:
-            username: 用户名
-            password: 密码
         Returns:
-            文件列表
+            文件名列表
         '''
         header = {
             'command': 'LIST',
@@ -192,6 +196,7 @@ class Client:
             else:
                 print("获取文件列表失败:", header['message'])
                 return None
+        return None
 
     
     def upload_file(self, file_path: str):
@@ -199,7 +204,7 @@ class Client:
         客户端上传文件
         
         Args: 
-            file_path: 文件路径
+            file_path: 上传文件路径
         '''
         try:
             if os.path.isfile(file_path):
@@ -259,12 +264,12 @@ class Client:
 
             if status == 'OK':
                 file_size = header["fileSize"]
-                file_path = os.path.join("download_files/", file_name)
+                file_path = os.path.join(DOWNLOAD_DIR + "/", file_name)
                 print(f'download file path is {file_path}, filesize is {file_size}')
                 recvd_size = 0
                 fp = open(file_path, 'wb')
                 print("Start receiving")  
-                while not recvd_size == file_size:
+                while recvd_size != file_size:
                     if file_size - recvd_size > 1024:
                         # 由于经过加密，实际发送的文件长度和原本不一致
                         recv_len = int(self.ssock.recv(1024).decode("utf-8"))
@@ -281,7 +286,7 @@ class Client:
                         recvd_size = file_size
                     fp.write(decrypted_data)
                 fp.close()
-                print('receive done')
+                print('下载完成')
                 tkinter.messagebox.showinfo('提示！',message='下载成功：' + file_name)
 
     def encrypt_file(self, data) -> bytes:
@@ -341,9 +346,8 @@ class Client:
         
         if self.rsa_cipher.verify_signature(content, digest, self.server_public_key):
             return content
-        else:
-            print("文件签名不一致!")
-            return None
+        print("文件签名不一致!")
+        return None
 
 
 if __name__ == "__main__":

@@ -9,6 +9,9 @@ pattern = '{"文件名": "(.*?)", "上传者": "(.*?)", "上传时间": "(.*?)",
 patch = re.compile(pattern)
 
 class DownloadFrame(Frame):  # 继承Frame类
+    '''
+    Description: 下载文件页面
+    '''
     def __init__(self, master=None,client=None):
         Frame.__init__(self, master)
         self.root = master  # 定义内部变量root
@@ -18,6 +21,9 @@ class DownloadFrame(Frame):  # 继承Frame类
         self.createPage()
 
     def createPage(self):
+        '''
+        Usage: 创建页面
+        '''
         title = ['2', '3', '4', ]
         self.box = ttk.Treeview(self, columns=title,
                                 yscrollcommand=self.scrollbar.set,
@@ -96,7 +102,7 @@ class DownloadFrame(Frame):  # 继承Frame类
 
 class UploadFrame(Frame):  
     '''
-    Description: 上传文件
+    Description: 上传文件页面
     '''
     def __init__(self, master = None, client = None):
         Frame.__init__(self, master)

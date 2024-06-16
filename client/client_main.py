@@ -10,7 +10,7 @@ class MainPage:
     '''
     def __init__(self, master=None, client=None):
         self.root = master
-        self.root.title("文件上传客户端")
+        self.root.title("安全文件传输客户端")
         self.root.geometry("780x400")
         self.client = client
         self.createPage()

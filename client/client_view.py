@@ -115,12 +115,14 @@ class UploadFrame(Frame):
         '''
         Usage: 创建页面
         '''
+
         Label(self).grid(row=0, stick=W, pady=10)
-        Label(self, text='请选择要上传的文件: ').grid(row=1, stick=W, pady=10)
-        Entry(self, textvariable=self.filePath, width=50).grid(row=1, column=1, stick=E)
-        Button(self, text=' 选择文件 ', command=self.select_file).grid(row=1, column=2, stick=E, padx=10)
-        Button(self, text='上传', bg='#99CCFF', command=self.upload).grid(row=2, column=1, stick=W, pady=10, ipadx=50)
-        Button(self, text='重置', bg='#FF6666',command=self.reset).grid(row=2, column=1, stick=E, pady=10, ipadx=50)
+        Label(self, text='请选择要上传的文件: ', font=('宋体', 12)).grid(row=1, stick=W, pady=10)
+        Entry(self, textvariable=self.filePath, width=50, font=('宋体', 12)).grid(row=1, column=1, stick=E)
+        Button(self, text=' 选择文件 ', command=self.select_file, font=('宋体', 10), bg='#D0D3D4').grid(row=1, column=2, stick=E, padx=10)
+        Button(self, text='上传', bg='#3498DB', command=self.upload, font=('宋体', 12)).grid(row=2, column=1, stick=W, pady=10, ipadx=50)
+        Button(self, text='重置', bg='#E74C3C',command=self.reset, font=('宋体', 12)).grid(row=2, column=1, stick=E, pady=10, ipadx=50)
+
 
     def select_file(self):
         '''
@@ -161,6 +163,6 @@ class AboutFrame(Frame):
         '''
         Usage: 创建页面
         '''
-        Label(self).grid(row=0, stick=W, pady=50)
-        Label(self, text='Designed by yoelmiko').grid(row=1, stick=W, pady=3)
-        # Label(self, text='颜琪滨 123036910055').grid(row=2, stick=W, pady=3)
+        Label(self, text='关于', font=('黑体', 14)).pack(pady=10)
+        about_text = "安全文件传输客户端 v1.0\n开发者: YoelMiko\n联系方式: yoelmiko888@gmail.com"
+        Label(self, text=about_text, font=('黑体', 12)).pack(pady=10)

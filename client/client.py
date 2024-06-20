@@ -181,10 +181,15 @@ class Client:
         fhead = struct.pack('128s', header_bytes)
         self.ssock.send(fhead)
 
-        fileinfo_size = struct.calcsize('128s')
-        buf = self.ssock.recv(fileinfo_size)
-        if buf:
-            header_json = str(struct.unpack('128s', buf)[0], encoding='utf-8').strip('\00')
+        # fileinfo_size = struct.calcsize('128s')
+        # buf = self.ssock.recv(fileinfo_size)
+        len_buf = self.ssock.recv(4)
+        res_len = struct.unpack('!I', len_buf)[0]
+        res_buf = self.ssock.recv(res_len)
+        
+        if res_buf:
+            # header_json = str(struct.unpack('128s', buf)[0], encoding='utf-8').strip('\00')
+            header_json = res_buf.decode('utf-8')
             print(header_json)
             header = json.loads(header_json)
             status = header['status']

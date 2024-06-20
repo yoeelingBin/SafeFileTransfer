@@ -5,9 +5,6 @@ from tkinter import filedialog
 import re
 import threading
 
-pattern = '{"文件名": "(.*?)", "上传者": "(.*?)", "上传时间": "(.*?)", "大小": "(.*?)"}'
-patch = re.compile(pattern)
-
 class DownloadFrame(Frame):  # 继承Frame类
     '''
     Description: 下载文件页面
@@ -29,13 +26,13 @@ class DownloadFrame(Frame):  # 继承Frame类
                                 yscrollcommand=self.scrollbar.set,
                                 show='headings', height=15)
 
-        self.box.column('2', width=300, anchor='center')
-        self.box.column('3', width=150, anchor='center')
-        self.box.column('4', width=150, anchor='center')
+        self.box.column('2', width=200, anchor='center')
+        self.box.column('3', width=200, anchor='center')
+        self.box.column('4', width=200, anchor='center')
 
         self.box.heading('2', text='文件名')
-        self.box.heading('3', text='上传时间')
-        self.box.heading('4', text='大小')
+        self.box.heading('3', text='时间戳')
+        self.box.heading('4', text='文件大小')
 
         self.dealline(self.client.list_files())
 
@@ -47,18 +44,6 @@ class DownloadFrame(Frame):  # 继承Frame类
         Button(self, text=' 退出 ', command=self.isquit).pack(expand=1, fill="both", side="left", anchor="w")
 
 
-    # 这里的实现方式是从log文件中读出文件的大小和上传时间等信息
-    # def readdata(self, ):
-    #     """逐行读取文件"""
-
-    #     # 读取gbk编码文件，需要加encoding='utf-8'
-    #     f = open('./ClientCache/result.txt', 'r', encoding='utf-8')
-    #     line = f.readline()
-    #     while line:
-    #         yield line
-    #         line = f.readline()
-    #     f.close()
-
     def dealline(self, file_list):
         '''
         Usage: 处理box中的数据
@@ -68,16 +53,20 @@ class DownloadFrame(Frame):  # 继承Frame类
         for item in x:
             self.box.delete(item)
         # 插入新的文件名到 Treeview
-        for file_name in file_list:
-            self.box.insert('', 'end', values=[file_name])
-        # while 1:
-        #     try:
-        #         line = next(op)
-        #     except StopIteration as e:
-        #         break
-        #     else:
-        #         result = patch.match(line)
-        #         self.box.insert('', 'end', values=[result.group(i) for i in range(1, 5)])
+        for file_info in file_list:
+            file_name = file_info["name"]
+            modification_time = file_info["modification_time"]
+            file_size = file_info["size"]
+            
+            # 将文件大小转换为合适的单位（如 KB、MB）
+            if file_size < 1024:
+                size_str = f"{file_size} B"
+            elif file_size < 1024 * 1024:
+                size_str = f"{file_size / 1024:.2f} KB"
+            else:
+                size_str = f"{file_size / (1024 * 1024):.2f} MB"
+            
+            self.box.insert('', 'end', values=[file_name, modification_time, size_str])
 
     def isquit(self):
         '''
